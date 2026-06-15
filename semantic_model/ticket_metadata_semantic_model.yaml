@@ -1,0 +1,145 @@
+name: support_ticket_intelligence
+description: Support ticket analytics model for Cortex Analyst.
+
+tables:
+  - name: support_ticket_intelligence
+    description: Enriched support tickets with text classification, sentiment, and operational metadata.
+    base_table:
+      database: SUPPORT_INTELLIGENCE
+      schema: SUPPORT_OPS
+      table: SUPPORT_TICKET_INTELLIGENCE
+    dimensions:
+      - name: ticket_id
+        expr: TICKET_ID
+        data_type: TEXT
+        unique: true
+        synonyms:
+          - case id
+          - ticket number
+      - name: issue_category
+        expr: ISSUE_CATEGORY
+        data_type: TEXT
+        synonyms:
+          - category
+          - issue type
+        sample_values:
+          - Billing
+          - Shipping Delay
+          - Product Defect
+          - Account Access
+          - Returns
+          - General Enquiry
+      - name: predicted_category
+        expr: PREDICTED_CATEGORY
+        data_type: TEXT
+        synonyms:
+          - AI category
+          - classified category
+      - name: agent_id
+        expr: AGENT_ID
+        data_type: TEXT
+        synonyms:
+          - agent
+      - name: channel
+        expr: CHANNEL
+        data_type: TEXT
+        synonyms:
+          - support channel
+        sample_values:
+          - email
+          - chat
+          - phone
+          - social
+      - name: product_line
+        expr: PRODUCT_LINE
+        data_type: TEXT
+        synonyms:
+          - product
+      - name: ticket_status
+        expr: CASE WHEN RESOLVED_AT IS NULL THEN 'Unresolved' ELSE 'Resolved' END
+        data_type: TEXT
+        synonyms:
+          - status
+    time_dimensions:
+      - name: created_at
+        expr: CREATED_AT
+        data_type: TIMESTAMP_NTZ
+        synonyms:
+          - opened time
+      - name: resolved_at
+        expr: RESOLVED_AT
+        data_type: TIMESTAMP_NTZ
+        synonyms:
+          - closed time
+    measures:
+      - name: ticket_count
+        expr: TICKET_ID
+        data_type: NUMBER
+        default_aggregation: count
+        synonyms:
+          - number of tickets
+          - volume
+      - name: satisfaction_rating
+        expr: SATISFACTION_RATING
+        data_type: NUMBER
+        default_aggregation: avg
+        synonyms:
+          - customer satisfaction
+          - CSAT
+      - name: sentiment
+        expr: SENTIMENT
+        data_type: NUMBER
+        default_aggregation: avg
+        synonyms:
+          - sentiment score
+      - name: unresolved_ticket_count
+        expr: CASE WHEN RESOLVED_AT IS NULL THEN 1 ELSE 0 END
+        data_type: NUMBER
+        default_aggregation: sum
+        synonyms:
+          - open tickets
+      - name: resolution_hours
+        expr: CASE WHEN CREATED_AT IS NULL OR RESOLVED_AT IS NULL THEN NULL ELSE DATEDIFF('minute', CREATED_AT, RESOLVED_AT) / 60.0 END
+        data_type: NUMBER
+        default_aggregation: avg
+        synonyms:
+          - time to resolve
+          - resolution time
+
+verified_queries:
+  - name: lowest_satisfaction_by_issue_category
+    question: Which issue category has the lowest satisfaction rating?
+    use_as_onboarding_question: true
+    sql: |
+      SELECT
+        issue_category,
+        AVG(satisfaction_rating) AS average_satisfaction_rating,
+        COUNT(ticket_id) AS ticket_count
+      FROM __support_ticket_intelligence
+      WHERE satisfaction_rating IS NOT NULL
+        AND issue_category IS NOT NULL
+      GROUP BY issue_category
+      ORDER BY average_satisfaction_rating ASC
+      LIMIT 1
+  - name: average_billing_resolution_time
+    question: How long does it take on average to resolve a billing issue?
+    use_as_onboarding_question: true
+    sql: |
+      SELECT
+        AVG(resolution_hours) AS average_resolution_hours,
+        COUNT(ticket_id) AS resolved_billing_tickets
+      FROM __support_ticket_intelligence
+      WHERE issue_category = 'Billing'
+        AND resolved_at IS NOT NULL
+  - name: unresolved_tickets_by_channel
+    question: Which channel has the most unresolved tickets?
+    use_as_onboarding_question: true
+    sql: |
+      SELECT
+        channel,
+        SUM(unresolved_ticket_count) AS unresolved_tickets
+      FROM __support_ticket_intelligence
+      WHERE channel IS NOT NULL
+      GROUP BY channel
+      ORDER BY unresolved_tickets DESC
+      LIMIT 1

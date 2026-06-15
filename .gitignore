@@ -1,0 +1,48 @@
+# Python virtual environment
+.venv/
+venv/
+env/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Jupyter / notebooks if you create any
+.ipynb_checkpoints/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Snowflake local connection/config files
+connections.toml
+config.toml
+.private/
+.snowflake/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VS Code local settings
+.vscode/settings.json
+.vscode/launch.json
+
+# Logs
+*.log
+logs/
+
+# Large/raw data
+data/raw/*
+!data/raw/README.md
+
+# Processed temporary outputs
+data/processed/*
+!data/processed/README.md
+
+# Local build artifacts
+dist/
+build/
