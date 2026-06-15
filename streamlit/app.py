@@ -260,10 +260,6 @@ def render_manager_analytics() -> None:
     if not result["data"].empty:
         st.dataframe(result["data"], use_container_width=True, hide_index=True)
 
-    if result["sql"]:
-        st.markdown("#### Generated SQL")
-        st.code(result["sql"], language="sql")
-
 
 def main() -> None:
     st.title(APP_TITLE)
