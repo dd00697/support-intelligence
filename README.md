@@ -1,5 +1,4 @@
-# Support Ticket Intelligence — powered by Snowflake Cortex
-
+# Support Ticket Intelligence
 A small Snowflake-native demo that loads support ticket text, enriches it with Cortex classification and sentiment, creates semantic ticket search, and exposes the workflow in Streamlit in Snowflake.
 
 ## Demo
