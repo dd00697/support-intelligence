@@ -17,13 +17,7 @@ SEMANTIC_MODEL_FILE = (
 )
 ANALYST_ENDPOINT = "/api/v2/cortex/analyst/message"
 API_TIMEOUT_MS = 50000
-APP_TITLE = "Support Ticket Intelligence — powered by Snowflake Cortex"
-
-SAMPLE_MANAGER_QUESTIONS = [
-    "Which issue category has the lowest satisfaction rating?",
-    "How long does it take on average to resolve a billing issue?",
-    "Which channel has the most unresolved tickets?",
-]
+APP_TITLE = "Support Ticket Intelligence"
 
 
 st.set_page_config(page_title=APP_TITLE, layout="wide")
@@ -52,9 +46,9 @@ def sentiment_label(score: Any) -> str:
     if score is None or pd.isna(score):
         return "Not scored"
     numeric_score = float(score)
-    if numeric_score < 0:
+    if numeric_score <= -0.5:
         return "Negative"
-    if numeric_score > 0:
+    if numeric_score >= 0.5:
         return "Positive"
     return "Neutral"
 
@@ -190,10 +184,6 @@ def get_unresolved_by_channel() -> pd.DataFrame:
     )
 
 
-def set_manager_question(question: str) -> None:
-    st.session_state["manager_question"] = question
-
-
 def render_agent_search() -> None:
     st.subheader("Search tickets by meaning")
     search_text = st.text_input(
@@ -245,19 +235,7 @@ def render_manager_analytics() -> None:
         unresolved = get_unresolved_by_channel()
         st.bar_chart(unresolved.set_index("CHANNEL")["UNRESOLVED_TICKETS"])
 
-    if "manager_question" not in st.session_state:
-        st.session_state["manager_question"] = SAMPLE_MANAGER_QUESTIONS[0]
-
-    columns = st.columns(3)
-    for column, sample_question in zip(columns, SAMPLE_MANAGER_QUESTIONS):
-        column.button(
-            sample_question,
-            on_click=set_manager_question,
-            args=(sample_question,),
-            use_container_width=True,
-        )
-
-    question = st.text_input("Manager question", key="manager_question")
+    question = st.text_input("Manager question")
 
     if not st.button("Ask question", type="primary"):
         return

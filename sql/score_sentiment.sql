@@ -3,22 +3,15 @@ USE WAREHOUSE SUPPORT_INTELLIGENCE_WH;
 USE DATABASE SUPPORT_INTELLIGENCE;
 USE SCHEMA SUPPORT_OPS;
 
--- Store sentiment as a simple numeric value for sorting.
+-- Store sentiment as a numeric score from -1 to 1.
 UPDATE SUPPORT_TICKET_INTELLIGENCE AS target
 SET SENTIMENT = sentiment_scores.SENTIMENT
 FROM (
   SELECT
     TICKET_ID,
-    CASE LOWER(AI_SENTIMENT(TICKET_TEXT):categories[0]:sentiment::VARCHAR)
-      WHEN 'negative' THEN -1
-      WHEN 'mixed' THEN 0
-      WHEN 'neutral' THEN 0
-      WHEN 'positive' THEN 1
-      ELSE NULL
-    END AS SENTIMENT
+    SNOWFLAKE.CORTEX.SENTIMENT(TICKET_TEXT) AS SENTIMENT
   FROM SUPPORT_TICKET_INTELLIGENCE
   WHERE TICKET_TEXT IS NOT NULL
-    AND SENTIMENT IS NULL
 ) AS sentiment_scores
 WHERE target.TICKET_ID = sentiment_scores.TICKET_ID
   AND sentiment_scores.SENTIMENT IS NOT NULL;
