@@ -154,21 +154,6 @@ def call_cortex_analyst(question: str) -> dict[str, Any]:
     }
 
 
-def get_satisfaction_by_category() -> pd.DataFrame:
-    return run_sql(
-        """
-        SELECT
-          ISSUE_CATEGORY,
-          ROUND(AVG(SATISFACTION_RATING), 2) AS AVERAGE_SATISFACTION_RATING
-        FROM SUPPORT_TICKET_INTELLIGENCE
-        WHERE ISSUE_CATEGORY IS NOT NULL
-          AND SATISFACTION_RATING IS NOT NULL
-        GROUP BY ISSUE_CATEGORY
-        ORDER BY AVERAGE_SATISFACTION_RATING ASC
-        """
-    )
-
-
 def get_unresolved_by_channel() -> pd.DataFrame:
     return run_sql(
         """
@@ -220,20 +205,9 @@ def render_agent_search() -> None:
 def render_manager_analytics() -> None:
     st.subheader("Ask a question about support operations")
 
-    chart_columns = st.columns(2)
-    with chart_columns[0]:
-        st.markdown("#### Average satisfaction by issue category")
-        satisfaction = get_satisfaction_by_category()
-        st.bar_chart(
-            satisfaction.set_index("ISSUE_CATEGORY")[
-                "AVERAGE_SATISFACTION_RATING"
-            ]
-        )
-
-    with chart_columns[1]:
-        st.markdown("#### Unresolved tickets by channel")
-        unresolved = get_unresolved_by_channel()
-        st.bar_chart(unresolved.set_index("CHANNEL")["UNRESOLVED_TICKETS"])
+    st.markdown("#### Unresolved tickets by channel")
+    unresolved = get_unresolved_by_channel()
+    st.bar_chart(unresolved.set_index("CHANNEL")["UNRESOLVED_TICKETS"])
 
     question = st.text_input("Manager question")
 
@@ -253,9 +227,6 @@ def render_manager_analytics() -> None:
         )
         st.code(str(exc))
         return
-
-    if result["answer"]:
-        st.markdown(result["answer"])
 
     if not result["data"].empty:
         st.dataframe(result["data"], use_container_width=True, hide_index=True)
