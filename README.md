@@ -2,19 +2,7 @@
 
 A small Snowflake-native demo that loads support ticket text, enriches it with Cortex classification and sentiment, creates semantic ticket search, and exposes the workflow in Streamlit in Snowflake.
 
-## Architecture
-
-```text
-CSV files
-  -> Snowflake internal stages
-  -> RAW_SUPPORT_TICKETS and TICKET_METADATA
-  -> SUPPORT_TICKET_INTELLIGENCE
-  -> AI_CLASSIFY, AI_SENTIMENT, Cortex Search, Cortex Analyst
-  -> Streamlit in Snowflake
-```
-
-
-## Demo Flow
+## Demo
 
 Use the Agent Search tab to search tickets by meaning, such as:
 
